@@ -168,6 +168,7 @@ def run_similarity_tests(notebooks, output_dir, student_map, thresholds, tests=[
 def generate_final_report(similarity_results, student_map, thresholds, output_dir):
     """Generate final report with suspicious counts and heatmap."""
     suspicious_counts = pd.DataFrame(index=student_map.values(), columns=student_map.values(), data=0, dtype=int)
+    suspicious_names = pd.DataFrame(index=student_map.values(), columns=student_map.values(), data='', dtype=str)
 
     # Iterate through results and count the number of tests that flagged the pair
     for test_name, matrix in similarity_results.items():
@@ -178,7 +179,11 @@ def generate_final_report(similarity_results, student_map, thresholds, output_di
                 if value > threshold and i != j:
                     suspicious_counts.loc[i, j] += 1
                     suspicious_counts.loc[j, i] += 1
+                    suspicious_names.loc[i, j] += (test_name + ',')
+                    suspicious_names.loc[j, i] += (test_name + ',')
+
     suspicious_counts = suspicious_counts / 2
+    suspicious_names = suspicious_names.map(lambda x: ', '.join(set(x.rstrip(',').split(','))))
 
     # Plot heatmap of suspicious counts
     plt.figure(figsize=(12, 10))
@@ -198,14 +203,14 @@ def generate_final_report(similarity_results, student_map, thresholds, output_di
             if suspicious_counts.iloc[i, j] >= 1:
                 student1 = suspicious_counts.index[i]
                 student2 = suspicious_counts.columns[j]
-                rankings[f"{student1} ↔ {student2}"] = suspicious_counts.iloc[i, j]
+                rankings[f"{student1} ↔ {student2}"] = f"{suspicious_counts.iloc[i, j]} tests ({suspicious_names.iloc[i, j]})"
 
     rankings = rankings.sort_values(ascending=False)
     final_report_path = os.path.join(output_dir, "final_suspicious_report.txt")
     with open(final_report_path, 'w', encoding='utf-8') as f:
         f.write("Pairs flagged as suspicious in more than one test:\n\n")
         for pair, value in rankings.items():
-            line = f"{pair}: {value} tests\n"
+            line = f"{pair}: {value}\n"
             f.write(line)
     print(f"\nFinal report saved to: {final_report_path}")
 

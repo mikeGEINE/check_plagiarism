@@ -57,7 +57,7 @@ def parse_arguments():
     parser.add_argument("--token", help="GitHub Personal Access Token")
     parser.add_argument("--organization", help="GitHub organization name")
     parser.add_argument("--csv", help="Path to the students' CSV file")
-    parser.add_argument("--assignment", type=int, help="Assignment identifier")
+    parser.add_argument("--assignment", type=str, help="Assignment identifier")
     parser.add_argument("--filename", type=int, help="File to fetch")
     parser.add_argument("--output", help="Directory to save fetched files")
     parser.add_argument("--workers", type=int, help="Number of concurrent threads")
@@ -74,7 +74,7 @@ def main():
     filename = args.filename or os.getenv("FILENAME")
     output_dir = args.output or os.getenv("OUTPUT_DIR", DEFAULT_OUTPUT_DIR)
     max_workers = args.workers or int(os.getenv("MAX_WORKERS", DEFAULT_MAX_WORKERS))
-    assignment = args.assignment or int(os.getenv("ASSIGNMENT", DEFAULT_MAX_WORKERS))
+    assignment = args.assignment or os.getenv("ASSIGNMENT", "EXAMPLE")
 
     if not all([github_token, organization, csv_file, filename]):
         print("❗ Error: GITHUB_TOKEN, ORGANIZATION, FILENAME, and CSV_FILE must be provided!")
